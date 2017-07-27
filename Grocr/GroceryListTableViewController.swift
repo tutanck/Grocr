@@ -32,6 +32,8 @@ class GroceryListTableViewController: UITableViewController {
   var user: User!
   var userCountBarButtonItem: UIBarButtonItem!
   
+  let ref = FIRDatabase.database().reference(withPath: "grocery-items")
+  
   // MARK: UIViewController Lifecycle
   
   override func viewDidLoad() {
@@ -108,13 +110,20 @@ class GroceryListTableViewController: UITableViewController {
                                   preferredStyle: .alert)
     
     let saveAction = UIAlertAction(title: "Save",
-                                   style: .default) { action in
-      let textField = alert.textFields![0] 
-      let groceryItem = GroceryItem(name: textField.text!,
-                                    addedByUser: self.user.email,
-                                    completed: false)
-      self.items.append(groceryItem)
-      self.tableView.reloadData()
+                                   style: .default) { _ in
+                                    // 1
+                                    guard let textField = alert.textFields?.first,
+                                      let text = textField.text else { return }
+                                    
+                                    // 2
+                                    let groceryItem = GroceryItem(name: text,
+                                                                  addedByUser: self.user.email,
+                                                                  completed: false)
+                                    // 3
+                                    let groceryItemRef = self.ref.child(text.lowercased())
+                                    
+                                    // 4
+                                    groceryItemRef.setValue(groceryItem.toAnyObject())
     }
     
     let cancelAction = UIAlertAction(title: "Cancel",
