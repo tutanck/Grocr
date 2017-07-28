@@ -24,7 +24,7 @@ import UIKit
 
 class LoginViewController: UIViewController {
   
-  
+  var user : User? = nil
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -37,6 +37,12 @@ class LoginViewController: UIViewController {
         self.performSegue(withIdentifier: self.loginToList, sender: nil)
       }
     }
+    
+    FIRAuth.auth()!.addStateDidChangeListener { auth, user in
+      guard let user = user else { return }
+      self.user = User(authData: user)
+    }
+    
   }
   
   // MARK: Constants

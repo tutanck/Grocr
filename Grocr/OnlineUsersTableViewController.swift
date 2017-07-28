@@ -30,10 +30,34 @@ class OnlineUsersTableViewController: UITableViewController {
   // MARK: Properties
   var currentUsers: [String] = []
   
+  let usersRef = FIRDatabase.database().reference(withPath: "online")
+  
   // MARK: UIViewController Lifecycle
   override func viewDidLoad() {
     super.viewDidLoad()
-    currentUsers.append("hungry@person.food")
+    // 1
+    usersRef.observe(.childAdded, with: { snap in
+      // 2
+      guard let email = snap.value as? String else { return }
+      self.currentUsers.append(email)
+      // 3
+      let row = self.currentUsers.count - 1
+      // 4
+      let indexPath = IndexPath(row: row, section: 0)
+      // 5
+      self.tableView.insertRows(at: [indexPath], with: .top)
+    })
+  
+    usersRef.observe(.childRemoved, with: { snap in
+      guard let emailToFind = snap.value as? String else { return }
+      for (index, email) in self.currentUsers.enumerated() {
+        if email == emailToFind {
+          let indexPath = IndexPath(row: index, section: 0)
+          self.currentUsers.remove(at: index)
+          self.tableView.deleteRows(at: [indexPath], with: .fade)
+        }
+      }
+    })
   }
   
   // MARK: UITableView Delegate methods
